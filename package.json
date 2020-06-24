@@ -3,6 +3,13 @@
   "description": "Send text into your OmniFocus inbox via email",
   "version": "0.0.0",
   "author": "ilya @oluckyman",
+  "scripts": {
+    "build": "npm run prepack",
+    "posttest": "eslint . --ext .ts --config .eslintrc",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev readme",
+    "test": "echo NO TESTS",
+    "version": "oclif-dev readme && git add README.md"
+  },
   "bin": {
     "of": "./bin/run"
   },
@@ -11,6 +18,8 @@
     "@oclif/command": "^1.6.1",
     "@oclif/config": "^1.15.1",
     "@oclif/plugin-help": "^3.1.0",
+    "@types/nodemailer": "^6.4.0",
+    "nodemailer": "^6.4.8",
     "tslib": "^1.13.0"
   },
   "devDependencies": {
@@ -39,11 +48,5 @@
     "bin": "of"
   },
   "repository": "oluckyman/omnifocus-inbox",
-  "scripts": {
-    "posttest": "eslint . --ext .ts --config .eslintrc",
-    "prepack": "rm -rf lib && tsc -b && oclif-dev readme",
-    "test": "echo NO TESTS",
-    "version": "oclif-dev readme && git add README.md"
-  },
   "types": "lib/index.d.ts"
 }

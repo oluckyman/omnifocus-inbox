@@ -16,13 +16,13 @@ Send text into your OmniFocus inbox via email
 <!-- usage -->
 ```sh-session
 $ npm install -g omnifocus-inbox
-$ of TEXT TO SEND INTO YOUR INBOX
+$ of COMMAND
 running command...
 $ of (-v|--version|version)
 omnifocus-inbox/0.0.0 darwin-x64 node-v13.12.0
-$ of --help 
+$ of --help [COMMAND]
 USAGE
-  $ of TEXT
+  $ of COMMAND
 ...
 ```
 <!-- usagestop -->
