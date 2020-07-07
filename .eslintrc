@@ -2,5 +2,8 @@
   "extends": [
     "oclif",
     "oclif-typescript"
-  ]
+  ],
+  "engines": {
+    "node": ">=13.12.0"
+  }
 }

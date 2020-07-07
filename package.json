@@ -19,6 +19,7 @@
     "@oclif/config": "^1.15.1",
     "@oclif/plugin-help": "^3.1.0",
     "@types/nodemailer": "^6.4.0",
+    "cli-ux": "^5.4.9",
     "nodemailer": "^6.4.8",
     "tslib": "^1.13.0"
   },
