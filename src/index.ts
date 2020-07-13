@@ -23,9 +23,11 @@ class OmnifocusInbox extends Command {
     version: flags.version({char: 'v'}),
     help: flags.help({char: 'h'}),
     body: flags.string({char: 'b'}),
+    email: flags.string({char: 'e'}),
   }
 
   transport!: Mail
+  email!: string
 
   constructor(argv: string[], command: IConfig) {
     super(argv, command)
@@ -46,7 +48,7 @@ class OmnifocusInbox extends Command {
     const body = flags.body
     const hasMessage = subject.trim().length > 0
     let addToQueue = false
-
+    this.email = flags.email ?? omniFocusEmail
 
     if (hasMessage) {
       cli.action.start('Sending')
@@ -106,7 +108,7 @@ class OmnifocusInbox extends Command {
   send({subject, body}: Message) {
     return this.transport.sendMail({
       from: 'OmniFocus inbox <from@email.com>',
-      to: omniFocusEmail,
+      to: this.email,
       subject,
       text: body,
     })
