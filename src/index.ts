@@ -2,12 +2,20 @@ import {Command, flags} from '@oclif/command'
 import * as nodemailer from 'nodemailer'
 import {promises as fs} from 'fs'
 import * as path from 'path'
+import dotenv from 'dotenv'
 import { IConfig } from '@oclif/config'
 import cli from 'cli-ux'
 import Mail = require('nodemailer/lib/mailer')
 
-const omniFocusEmail = 'example@email.com'
-// const myInbox = 'example-2@email.com'
+dotenv.config()
+
+const defaultEmail = process.env.EMAIL
+const fromAddress = process.env.FROM
+const transportHost = process.env.TRANSPORT_HOST
+const transportPort = process.env.TRANSPORT_PORT
+const transportAuthUser = process.env.TRANSPORT_AUTH_USER
+const transportAuthPass = process.env.TRANSPORT_AUTH_PASS
+const queuePath = process.env.QUEUE_PATH
 
 interface Message {
   subject: string
@@ -15,15 +23,15 @@ interface Message {
 }
 
 class OmnifocusInbox extends Command {
-  static description = 'describe the command here'
+  static description = 'Sends a email to specified email. Good for capturing quick notes and ideas into your inbox or OmniFocus inbox'
 
   static strict = false
 
   static flags = {
     version: flags.version({char: 'v'}),
     help: flags.help({char: 'h'}),
-    body: flags.string({char: 'b'}),
-    email: flags.string({char: 'e'}),
+    body: flags.string({char: 'b', description: 'Body of the message. Wrap in quotes if multiple words'}),
+    email: flags.string({char: 'e', description: 'Custom email to send to'}),
   }
 
   transport!: Mail
@@ -32,12 +40,12 @@ class OmnifocusInbox extends Command {
   constructor(argv: string[], command: IConfig) {
     super(argv, command)
     this.transport = nodemailer.createTransport({
-      host: 'mail.gandi.net',
+      host: transportHost ?? 'mail.gandi.net',
       secure: true, // use SSL
-      port: 465, // port for secure SMTP
+      port: +(transportPort ?? 465), // port for secure SMTP
       auth: {
-        user: 'example@email.com',
-        pass: 'SecretPassw0rd',
+        user: transportAuthUser,
+        pass: transportAuthPass,
       },
     })
   }
@@ -48,29 +56,36 @@ class OmnifocusInbox extends Command {
     const body = flags.body
     const hasMessage = subject.trim().length > 0
     let addToQueue = false
-    this.email = flags.email ?? omniFocusEmail
+    const emailToUse = flags.email ?? defaultEmail
+    if (!emailToUse) {
+      this.error('Please, specify target email in .env EMAIL or with -e flag')
+      cli.action.stop('no email to send to')
+      return
+    }
+
+    this.email = emailToUse
 
     if (hasMessage) {
       cli.action.start('Sending')
       await this.send({subject, body})
-      .then(() => cli.action.stop())
-      .catch((error: any) => {
-        if (error.code === 'EDNS') {
-          cli.action.stop('no connection')
-          addToQueue = true
-        }
-      })
+        .then(() => cli.action.stop())
+        .catch((error: any) => {
+          if (error.code === 'EDNS') {
+            cli.action.stop('no connection')
+            addToQueue = true
+          }
+        })
     }
 
     // process queue
     //
-    const queuePath = path.resolve(process.env.HOME || '', '.of_queue')
+    const queueFilename = queuePath ?? path.resolve(process.env.HOME || '', '.of_queue')
     let queue: Message[] = JSON.parse(
-      await fs.readFile(queuePath)
-      .then(buff => buff.toString())
-      .catch(() => {
-        this.log('No queue file found', queuePath)
-      }) || '[]'
+      await fs.readFile(queueFilename)
+        .then(buff => buff.toString())
+        .catch(() => {
+          this.log('No queue file found', queueFilename)
+        }) || '[]'
     )
 
     if (addToQueue) {
@@ -102,12 +117,12 @@ class OmnifocusInbox extends Command {
       }
       queue = failed
     }
-    await fs.writeFile(queuePath, JSON.stringify(queue))
+    await fs.writeFile(queueFilename, JSON.stringify(queue))
   }
 
   send({subject, body}: Message) {
     return this.transport.sendMail({
-      from: 'OmniFocus inbox <from@email.com>',
+      from: fromAddress,
       to: this.email,
       subject,
       text: body,
