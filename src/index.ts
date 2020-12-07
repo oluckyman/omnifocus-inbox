@@ -7,7 +7,7 @@ import { IConfig } from '@oclif/config'
 import cli from 'cli-ux'
 import Mail = require('nodemailer/lib/mailer')
 
-dotenv.config()
+dotenv.config({ path: `${__dirname}/../.env` })
 
 const defaultEmail = process.env.EMAIL
 const fromAddress = process.env.FROM
