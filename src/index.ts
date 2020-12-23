@@ -51,9 +51,32 @@ class OmnifocusInbox extends Command {
   }
 
   async run() {
-    const {argv, flags} = this.parse(OmnifocusInbox)
-    const subject = argv.join(' ')
-    const body = flags.body
+    const {flags, raw} = this.parse(OmnifocusInbox)
+    const parsed = {
+      subject: [] as string[],
+      body: [] as string[],
+    }
+    let state: 'subject' | 'body' | 'other' = 'subject'
+
+    raw.forEach(token => {
+      if (token.type === 'flag') {
+        state = token.flag === 'body' ? 'body' : 'other'
+      }
+      switch (state) {
+        case 'subject':
+          parsed.subject.push(token.input)
+          break
+        case 'body':
+          parsed.body.push(token.input)
+          break
+        case 'other':
+          // skip the flag but get back to subject state
+          state = 'subject'
+          break
+      }
+    })
+    const subject = parsed.subject.join(' ')
+    const body = parsed.body.join(' ')
     const hasMessage = subject.trim().length > 0
     let addToQueue = false
     const emailToUse = flags.email ?? defaultEmail
@@ -73,6 +96,9 @@ class OmnifocusInbox extends Command {
           if (error.code === 'EDNS') {
             cli.action.stop('no connection')
             addToQueue = true
+          } else {
+            console.log('Unhandled error', error)
+            throw new Error(error)
           }
         })
     }
@@ -94,9 +120,9 @@ class OmnifocusInbox extends Command {
     } else if (queue.length) {
       let sending
       if(hasMessage) {
-        sending = `There are messages in queue, sending them too`
+        sending = `There are messages in the queue, sending them too`
       } else {
-        sending = `Sending messages from queue`
+        sending = `Sending messages from the queue`
       }
       const failed: Message[] = []
       let processed = 0
