@@ -11,8 +11,9 @@ dotenv.config({ path: `${__dirname}/../.env` })
 
 const defaultEmail = process.env.EMAIL
 const fromAddress = process.env.FROM
-const transportHost = process.env.TRANSPORT_HOST
-const transportPort = process.env.TRANSPORT_PORT
+const transportService = process.env.TRANSPORT_SERVICE
+// const transportHost = process.env.TRANSPORT_HOST
+// const transportPort = process.env.TRANSPORT_PORT
 const transportAuthUser = process.env.TRANSPORT_AUTH_USER
 const transportAuthPass = process.env.TRANSPORT_AUTH_PASS
 const queuePath = process.env.QUEUE_PATH
@@ -40,9 +41,11 @@ class OmnifocusInbox extends Command {
   constructor(argv: string[], command: IConfig) {
     super(argv, command)
     this.transport = nodemailer.createTransport({
-      host: transportHost ?? 'mail.gandi.net',
+      // See your service in the list https://nodemailer.com/smtp/well-known/
+      service: transportService,
+      // host: transportHost ?? 'mail.gandi.net',
+      // port: +(transportPort ?? 465), // port for secure SMTP
       secure: true, // use SSL
-      port: +(transportPort ?? 465), // port for secure SMTP
       auth: {
         user: transportAuthUser,
         pass: transportAuthPass,

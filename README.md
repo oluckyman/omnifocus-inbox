@@ -19,7 +19,7 @@ $ npm install -g omnifocus-inbox
 $ of COMMAND
 running command...
 $ of (-v|--version|version)
-omnifocus-inbox/0.0.0 darwin-x64 node-v12.18.4
+omnifocus-inbox/0.0.0 darwin-arm64 node-v17.7.2
 $ of --help [COMMAND]
 USAGE
   $ of COMMAND
